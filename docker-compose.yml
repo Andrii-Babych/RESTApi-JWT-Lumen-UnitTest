@@ -1,0 +1,51 @@
+version: "2"
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/Nginx.Dockerfile
+    ports:
+      - 80:80
+      - 443:443
+    links:
+      - fpm
+    volumes:
+      - ./:/var/www/REST_JWT_Lumen
+    depends_on:
+      - postgres
+  fpm:
+    build:
+      context: .
+      dockerfile: docker/Fpm.Dockerfile
+    volumes:
+      - ./:/var/www/REST_JWT_Lumen
+    links:
+      - postgres
+  postgres:
+    image: postgres:latest
+    container_name: lemp_postgresdb
+    restart: always
+    environment:
+      POSTGRES_DB: "postgres"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - pgconf:/etc/postgresql
+      - pglog:/var/log/postgresql
+      - ./docker/conf/postgresql.conf:/usr/share/postgresql/postgresql.conf
+
+volumes:
+  pgdata:
+    driver: local
+  pgconf:
+    driver: local
+  pglog:
+    driver: local
+
+networks:
+  bridge:
+    driver: bridge
